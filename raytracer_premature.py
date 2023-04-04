@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from bvh import *
+
 
 class Sphere(object):
     def __init__(self, center, radius, ambient, diffuse, specular, shininess, reflection):
@@ -13,6 +15,7 @@ class Sphere(object):
         self.reflection = reflection
         self.bounds = np.array([center - radius, center + radius])
 
+ 
 
 class Light(object):
     def __init__(self, position, ambient, diffuse, specular):
@@ -84,7 +87,9 @@ objects = [
 
 ]
 
-# root = build_bvh(objects)
+root = BVHTree(objects)
+root.buildBVH()
+print(root)
 
 image = np.zeros((height, width, 3))
 # plt.show()
