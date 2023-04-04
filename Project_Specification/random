@@ -1,0 +1,15 @@
+@misc{chatgpt,
+  title = {Conversation with ChatGPT},
+  author = {},
+  year = {2023},
+  howpublished = {Online chat},
+  month = {April 3},
+  url = {https://example.com/chatgpt-conversation},
+  note = {Accessed on April 3, 2023}
+}
+
+@misc{paper,
+  title = {Efficient BVH Construction via Approximate Agglomerative Clustering},
+  author = {},
+  year = {2013},
+}
