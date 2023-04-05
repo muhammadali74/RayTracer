@@ -15,11 +15,9 @@ class BoundingBox:
         self.coordinates = ([(minx, miny, minz), (minx, maxy, minz), (minx, maxy, maxz), (minx, miny, maxz),
                             (maxx, maxy, maxz), (maxx, miny, maxz), (maxx, miny, minz), (maxx, maxy, minz)])
         self.center = self.compute_center(self.coordinates)
-        self.sphere = None
 
         if type(objects) != list:
             self.left, self.right = None, None
-            self.sphere = objects
         else:
             self.left = objects[0]
             if len(objects) > 1:
@@ -44,15 +42,6 @@ class BoundingBox:
 
     def __str__(self) -> str:
         return str([self.center, str(self.left), str(self.right)])
-
-    def box_intersect(self, rayOrigin, rayDirection):
-        t0 = (self.bounds[0] - rayOrigin) / rayDirection
-        t1 = (self.bounds[1] - rayOrigin) / rayDirection
-
-        tmin = np.min([t0, t1], axis=0)
-        tmax = np.max([t0, t1], axis=0)
-
-        return np.max(tmin) <= np.min(tmax)
 
 
 class BVHTree:
