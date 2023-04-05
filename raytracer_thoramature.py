@@ -5,6 +5,7 @@ from bvh import *
 
 import time
 
+
 class Sphere(object):
     def __init__(self, center, radius, ambient, diffuse, specular, shininess, reflection):
         self.center = center
@@ -60,7 +61,7 @@ def sphere_intersect(center, radius, ray_origin, ray_direction):
 def nearest_intersected_object(objects, ray_origin, ray_direction):
     distances = [sphere_intersect(
         obj.center, obj.radius, ray_origin, ray_direction) for obj in objects]
-    print(distances)
+    # print(distances)
     nearest_object = None
     min_distance = np.inf
     for index, distance in enumerate(distances):
@@ -124,9 +125,9 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
 
         for k in range(max_depth):
             # check for intersections
-            nearest_object, min_distance = tree.traverse(origin, direction)
-            # nearest_object, min_distance = nearest_intersected_object(
-                # objects, origin, direction)
+            # nearest_object, min_distance = tree.traverse(origin, direction)
+            nearest_object, min_distance = nearest_intersected_object(
+                objects, origin, direction)
 
             if nearest_object is None:
                 break
@@ -138,14 +139,14 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
             intersection_to_light = normalize(
                 light.position - shifted_point)
 
-            # _, min_distance = nearest_intersected_object(
-            #     objects, shifted_point, intersection_to_light)
-            # intersection_to_light_distance = np.linalg.norm(
-            #     light.position - intersection)
-            # is_shadowed = min_distance < intersection_to_light_distance
+            _, min_distance = nearest_intersected_object(
+                objects, shifted_point, intersection_to_light)
+            intersection_to_light_distance = np.linalg.norm(
+                light.position - intersection)
+            is_shadowed = min_distance < intersection_to_light_distance
 
-            # if is_shadowed:
-            #     break
+            if is_shadowed:
+                break
 
             illumination = np.zeros((3))
 
@@ -176,13 +177,8 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
     # plt.show()
 
 
-
-
 end = time.time()
 print(end - start)
-
-
-
 
 
 image = np.zeros((height, width, 3))
@@ -255,8 +251,6 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
     # plt.show()
 
 
-
-
 end = time.time()
 print(end - start)
 
@@ -264,4 +258,3 @@ print(end - start)
 plt.imsave('imagenew.png', image)
 plt.imshow(image)
 plt.show()
-
