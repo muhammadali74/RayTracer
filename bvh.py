@@ -48,9 +48,6 @@ class BoundingBox:
     def box_intersect(self, rayOrigin, rayDirection):
         t0 = (self.bounds[0] - rayOrigin) / rayDirection
         t1 = (self.bounds[1] - rayOrigin) / rayDirection
-        # tmin = np.maximum(tmin, np.zeros_like(tmin))
-        # tmax = np.minimum(tmax, np.ones_like(tmax) * np.inf)
-        # return np.all(tmin <= tmax)
 
         tmin = np.min([t0, t1], axis=0)
         tmax = np.max([t0, t1], axis=0)

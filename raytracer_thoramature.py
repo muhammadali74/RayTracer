@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import random
 from bvh import *
 
 
@@ -71,7 +71,7 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
 width = 300
 height = 200
 
-max_depth = 1
+max_depth = 3
 
 camera = np.array([0, 0, 1])
 ratio = float(width) / height
@@ -96,6 +96,11 @@ objects = [
            np.array([0.6, 0.6, 0.6]), np.array([1, 1, 1]), 100, 0.5),
 ]
 
+newobjects = [Sphere(np.array([random.uniform(-0.3, 0.7), random.uniform(0, 0.8), random.uniform(0, -3)]), random.uniform(0,1.2), np.array([0.1, 0.1, 0.1]),
+           np.array([random.uniform(0,0.6), random.uniform(0,0.6), random.uniform(0,0.6)]), np.array([1, 1, 1]), 100, random.uniform(0,0.5)) for k in range(20)]
+
+objects.extend(newobjects)
+
 tree = BVHTree(objects)
 print(tree)
 tree.buildTree()
@@ -113,16 +118,13 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
         direction = normalize(pixel - origin)
 
         color = np.zeros((3))
+        reflection = 1
 
-        # nearest_object, min_distance = nearest_intersected_object(
-        #     objects, origin, direction)
-        nearest_object, min_distance = tree.traverse(origin, direction)
-        if nearest_object is None:
-
-            continue
-        else:
-            # color = nearest_object['color']
-            # print('isNOTNone')
+        for k in range(max_depth):
+            # check for intersections
+            nearest_object, min_distance = tree.traverse(origin, direction)
+            if nearest_object is None:
+                break
 
             intersection = origin + min_distance * direction
             normal_to_surface = normalize(
@@ -131,14 +133,14 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
             intersection_to_light = normalize(
                 light.position - shifted_point)
 
-            # _, min_distance = nearest_intersected_object(
-            #     objects, shifted_point, intersection_to_light)
-            # intersection_to_light_distance = np.linalg.norm(
-            #     light.position - intersection)
-            # is_shadowed = min_distance < intersection_to_light_distance
+            _, min_distance = nearest_intersected_object(
+                objects, shifted_point, intersection_to_light)
+            intersection_to_light_distance = np.linalg.norm(
+                light.position - intersection)
+            is_shadowed = min_distance < intersection_to_light_distance
 
-            # if is_shadowed:
-            #     break
+            if is_shadowed:
+                break
 
             illumination = np.zeros((3))
 
@@ -156,9 +158,11 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
                 normal_to_surface, H) ** (nearest_object.shininess / 4)
 
             # reflection
-            color += illumination
+            color += reflection * illumination
+            reflection *= nearest_object.reflection
 
-            # color = nearest_object['color']
+            origin = shifted_point
+            direction = reflected(direction, normal_to_surface)
 
         image[i, j] = np.clip(color, 0, 1)
 
@@ -167,6 +171,6 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
     # plt.show()
 
 
-# plt.imsave('imagenew.png', image)
+plt.imsave('imagenew.png', image)
 plt.imshow(image)
 plt.show()
