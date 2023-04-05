@@ -100,7 +100,8 @@ class BVHTree:
         return dist
 
     def traverse(self, rayOrigin, rayDirection):
-        stack = [self.root]
+        # if type == 'origin':
+        stack = [self.root.left, self.root.right]
         minDist = inf
         nearest = None
         while len(stack) > 0:
@@ -109,7 +110,7 @@ class BVHTree:
             if node.box_intersect(rayOrigin, rayDirection):
                 if node.left is None and node.right is None:
                     dist = node.sphere.intersect(rayOrigin, rayDirection)
-                    # print(dist)
+
                     if dist is not None:
                         if dist < minDist:
                             minDist = dist
@@ -120,5 +121,7 @@ class BVHTree:
                     stack.append(node.right)
 
         if nearest is None:
-            return None, None
+            return None, inf
         return nearest
+
+        # else:
