@@ -15,9 +15,11 @@ class BoundingBox:
         self.coordinates = ([(minx, miny, minz), (minx, maxy, minz), (minx, maxy, maxz), (minx, miny, maxz),
                             (maxx, maxy, maxz), (maxx, miny, maxz), (maxx, miny, minz), (maxx, maxy, minz)])
         self.center = self.compute_center(self.coordinates)
+        self.sphere = None
 
         if type(objects) != list:
             self.left, self.right = None, None
+            self.sphere = objects
         else:
             self.left = objects[0]
             if len(objects) > 1:
@@ -42,6 +44,18 @@ class BoundingBox:
 
     def __str__(self) -> str:
         return str([self.center, str(self.left), str(self.right)])
+
+    def box_intersect(self, rayOrigin, rayDirection):
+        t0 = (self.bounds[0] - rayOrigin) / rayDirection
+        t1 = (self.bounds[1] - rayOrigin) / rayDirection
+        # tmin = np.maximum(tmin, np.zeros_like(tmin))
+        # tmax = np.minimum(tmax, np.ones_like(tmax) * np.inf)
+        # return np.all(tmin <= tmax)
+
+        tmin = np.min([t0, t1], axis=0)
+        tmax = np.max([t0, t1], axis=0)
+
+        return np.max(tmin) <= np.min(tmax)
 
 
 class BVHTree:
@@ -75,7 +89,7 @@ class BVHTree:
     def buildTree(self):
         self.buildBVH()
         self.root = self.boxes[0]
-        return self.root
+        # return self.root
 
     def compute_dist(self, box1, box2):
         center1 = box1.center
@@ -84,3 +98,27 @@ class BVHTree:
                     center2[1])**2 + (center1[2] - center2[2])**2)
 
         return dist
+
+    def traverse(self, rayOrigin, rayDirection):
+        stack = [self.root]
+        minDist = inf
+        nearest = None
+        while len(stack) > 0:
+            node = stack.pop()
+            # print(node)
+            if node.box_intersect(rayOrigin, rayDirection):
+                if node.left is None and node.right is None:
+                    dist = node.sphere.intersect(rayOrigin, rayDirection)
+                    # print(dist)
+                    if dist is not None:
+                        if dist < minDist:
+                            minDist = dist
+                            nearest = (node.sphere, dist)
+
+                else:
+                    stack.append(node.left)
+                    stack.append(node.right)
+
+        if nearest is None:
+            return None, None
+        return nearest
