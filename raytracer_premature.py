@@ -15,7 +15,6 @@ class Sphere(object):
         self.reflection = reflection
         self.bounds = np.array([center - radius, center + radius])
 
- 
 
 class Light(object):
     def __init__(self, position, ambient, diffuse, specular):
@@ -88,6 +87,7 @@ objects = [
 ]
 
 root = BVHTree(objects)
+print(root)
 root.buildBVH()
 print(root)
 

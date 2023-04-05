@@ -41,18 +41,8 @@ class BoundingBox:
             return (min_bounds, max_bounds)
 
     def __str__(self) -> str:
-        return str([self.bounds,  self.center, str(self.left), str(self.right)] )
+        return str([self.center, str(self.left), str(self.right)])
 
-
-# class BVHNode:
-#     def __init__(self, bounds: Tuple[np.ndarray, np.ndarray], objects: List[int]):
-#         self.bounds = bounds
-#         self.left = None
-#         self.right = None
-#         self.objects = objects
-
-#     def is_leaf(self):
-#         return self.left is None and self.right is None
 
 class BVHTree:
     def __init__(self, objects):
@@ -81,6 +71,11 @@ class BVHTree:
             del self.boxes[right]
             del self.boxes[left]
             self.boxes.append(new_box)
+
+    def buildTree(self):
+        self.buildBVH()
+        self.root = self.boxes[0]
+        return self.root
 
     def compute_dist(self, box1, box2):
         center1 = box1.center
