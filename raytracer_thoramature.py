@@ -71,7 +71,7 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
 width = 300
 height = 200
 
-max_depth = 3
+max_depth = 1
 
 camera = np.array([0, 0, 1])
 ratio = float(width) / height
@@ -96,8 +96,8 @@ objects = [
            np.array([0.6, 0.6, 0.6]), np.array([1, 1, 1]), 100, 0.5),
 ]
 
-newobjects = [Sphere(np.array([random.uniform(-0.3, 0.7), random.uniform(0, 0.8), random.uniform(0, -3)]), random.uniform(0,1.2), np.array([0.1, 0.1, 0.1]),
-           np.array([random.uniform(0,0.6), random.uniform(0,0.6), random.uniform(0,0.6)]), np.array([1, 1, 1]), 100, random.uniform(0,0.5)) for k in range(20)]
+newobjects = [Sphere(np.array([random.uniform(-0.3, 0.7), random.uniform(0, 0.8), random.uniform(0, -3)]), random.uniform(0, 0.2), np.array([0.1, 0.1, 0.1]),
+                     np.array([random.uniform(0, 0.6), random.uniform(0, 0.6), random.uniform(0, 0.6)]), np.array([1, 1, 1]), 100, random.uniform(0, 0.5)) for k in range(10)]
 
 objects.extend(newobjects)
 
@@ -122,7 +122,10 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
 
         for k in range(max_depth):
             # check for intersections
-            nearest_object, min_distance = tree.traverse(origin, direction)
+            # nearest_object, min_distance = tree.traverse(origin, direction)
+            nearest_object, min_distance = nearest_intersected_object(
+                objects, origin, direction)
+
             if nearest_object is None:
                 break
 
@@ -133,14 +136,14 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
             intersection_to_light = normalize(
                 light.position - shifted_point)
 
-            _, min_distance = nearest_intersected_object(
-                objects, shifted_point, intersection_to_light)
-            intersection_to_light_distance = np.linalg.norm(
-                light.position - intersection)
-            is_shadowed = min_distance < intersection_to_light_distance
+            # _, min_distance = nearest_intersected_object(
+            #     objects, shifted_point, intersection_to_light)
+            # intersection_to_light_distance = np.linalg.norm(
+            #     light.position - intersection)
+            # is_shadowed = min_distance < intersection_to_light_distance
 
-            if is_shadowed:
-                break
+            # if is_shadowed:
+            #     break
 
             illumination = np.zeros((3))
 
