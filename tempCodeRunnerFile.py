@@ -1,0 +1,1 @@
+self.sphere = None

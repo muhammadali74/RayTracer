@@ -1,6 +1,7 @@
 import numpy as np
 from math import *
 # from raytracer_premature import Sphere
+# from raytracer_premature import Sphere
 
 
 class BoundingBox:
@@ -57,6 +58,11 @@ class BoundingBox:
 
         return np.max(tmin) <= np.min(tmax)
 
+    def __eq__(self, node):
+        # if node.minx == self.minx and node.miny == self.miny and node.minz == self.minz and node.maxx == self.maxx and node.maxy == self.maxy and node.maxz == self.maxz:
+        if id(node) == id(self):    
+            return True
+        return False
 
 class BVHTree:
     def __init__(self, objects):
@@ -101,7 +107,7 @@ class BVHTree:
 
     def traverse(self, rayOrigin, rayDirection):
         # if type == 'origin':
-        stack = [self.root.left, self.root.right]
+        stack = [self.root]
         minDist = inf
         nearest = None
         while len(stack) > 0:
@@ -117,6 +123,7 @@ class BVHTree:
                             nearest = (node.sphere, dist)
 
                 else:
+                    # if node.left is not None:
                     stack.append(node.left)
                     stack.append(node.right)
 
@@ -125,3 +132,58 @@ class BVHTree:
         return nearest
 
         # else:
+
+    def remove(self, obj):
+        stack = [(self.root, self.root.left), (self.root, self.root.right)]
+        # pa = []
+        while len(stack) > 0:
+            sett = stack.pop()
+            parent = sett[0]
+            node = sett[1]
+
+            if node.left is None and node.right is None:
+                if node.sphere == obj:
+                    node.sphere = None
+
+                    if parent == self.root:
+                        if parent.left == node:
+                            self.root = parent.right
+                            return
+                        elif parent.right == node:
+                            self.root = parent.left
+                            return
+
+
+
+                    grand_p = self.find(parent)
+
+                    if parent.left == node:
+                        if grand_p.left == parent:
+                            grand_p.left = parent.right
+                        elif grand_p.right == parent:
+                            grand_p.right = parent.right
+                    elif parent.right == node:
+                        if grand_p.left == parent:
+                            grand_p.left = parent.left
+                        elif grand_p.right == parent:
+                            grand_p.right = parent.left
+
+
+            else:
+                stack.append((node,node.left))
+                stack.append((node,node.right))
+        
+        return "not found"
+    
+    def find(self, node):
+        stack = [(self.root, self.root.left), (self.root, self.root.right)]
+        while len(stack) > 0:
+            n = stack.pop()
+            if n[1] == node:
+                return n[0]
+            else:
+                if n[1].left is not None:
+                    stack.append(n[1].left)
+                if n[1].right is not None:
+                    stack.append(n[1].right)
+        return None
