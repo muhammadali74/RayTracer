@@ -72,20 +72,35 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
     return nearest_object, min_distance
 
 class Camera:
-    def __init__(self, angle, ratio):
-        self.h = math.tan(angle / 2)
+    def __init__(self, angle, ratio, lookfrom, lookat, vup):
+        self.h = math.tan(math.radians(angle) / 2)
         # self.viewport_height = ratio * self.h
-        self.viewport_height = 1.0
+        self.viewport_height = 1.0 
         self.viewport_width = self.viewport_height * ratio
         self.focal_length = 1.0
 
-        self.origin = np.array([0,0,1])
-        self.horizontal = np.array([self.viewport_width, 0, 0])
-        self.vertical = np.array([0, self.viewport_height, 0])
-        self.lowerlc = self.origin - self.horizontal/2 - self.vertical/2 - np.array([0,0,self.focal_length])
+        # self.origin = np.array([0,0,1])
+        # self.horizontal = np.array([self.viewport_width, 0, 0])
+        # self.vertical = np.array([0, self.viewport_height, 0])
+        # self.lowerlc = self.origin - self.horizontal/2 - self.vertical/2 - np.array([0,0,self.focal_length])
+
+        w = lookfrom - lookat
+        w = w / np.linalg.norm(w)
+        u = np.cross(vup, w)
+        u = u / np.linalg.norm(u)
+        v = np.cross(w,u)
+
+        self.origin = lookfrom
+        self.horizontal = self.viewport_width * u
+        self.vertical = self.viewport_height * v
+        self.lowerlc = self.origin - self.horizontal/2 - self.vertical/2 - w
 
 
-cam = Camera(0, 300/200)
+
+
+
+
+cam = Camera(1, 300/200,   np.array([1,1,1]), np.array([0,0,-1]), np.array([0,1,0]))
 screen = (-cam.viewport_width, cam.viewport_height, cam.viewport_width, -cam.viewport_height)
 
 
@@ -138,7 +153,7 @@ for i in range(height):
         y = i/(height-1)
         x = j/(width-1)
         # screen is on origin
-        pixel = np.array([x, y, 0])
+        # pixel = np.array([x, y, 0])
         # origin = camera
         origin = cam.origin
         # direction = normalize(pixel - origin)
