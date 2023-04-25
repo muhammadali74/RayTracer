@@ -169,6 +169,7 @@ class Sphere(object):
         self.bounds = np.array([center - radius, center + radius])
 
     def intersect(self,  ray_origin, ray_direction):
+
         b = 2 * np.dot(ray_direction, ray_origin - self.center)
         c = np.linalg.norm(ray_origin - self.center) ** 2 - self.radius ** 2
         delta = b ** 2 - 4 * c
@@ -209,6 +210,9 @@ def sphere_intersect(center, radius, ray_origin, ray_direction):
 
 
 def nearest_intersected_object(objects, ray_origin, ray_direction):
+    cdef float min_distance
+
+
     distances = [sphere_intersect(
         obj.center, obj.radius, ray_origin, ray_direction) for obj in objects]
     # print(distances)
@@ -219,6 +223,14 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
             min_distance = distance
             nearest_object = objects[index]
     return nearest_object, min_distance
+
+
+cdef int width
+cdef int height
+cdef int max_depth
+cdef float ratio
+cdef long long int i,j
+cdef float x,y
 
 
 width = 300

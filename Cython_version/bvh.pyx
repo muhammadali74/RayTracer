@@ -76,9 +76,15 @@ class BVHTree:
         return str(lst)
 
     def buildBVH(self):
+        cdef float best
+        cdef unsigned long long int i
+        cdef unsigned long long int j
+        cdef unsigned long long int left
+        cdef unsigned long long int right
+
         while len(self.boxes) > 1:
             best = inf
-            left, right = None, None
+            left, right = 0, 0
             for i in range(len(self.boxes)):
                 for j in range(i+1, len(self.boxes)):
                     dist = self.compute_dist(self.boxes[i], self.boxes[j])
@@ -106,6 +112,9 @@ class BVHTree:
         return dist
 
     def traverse(self, rayOrigin, rayDirection):
+
+        cdef float minDist
+
         # if type == 'origin':
         stack = [self.root]
         minDist = inf

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from bvh import *
+import math
 
 import time
 
@@ -70,15 +71,32 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
             nearest_object = objects[index]
     return nearest_object, min_distance
 
+class Camera:
+    def __init__(self, angle, ratio):
+        self.h = math.tan(angle / 2)
+        # self.viewport_height = ratio * self.h
+        self.viewport_height = 1.0
+        self.viewport_width = self.viewport_height * ratio
+        self.focal_length = 1.0
 
-width = 1920
-height = 1080
+        self.origin = np.array([0,0,1])
+        self.horizontal = np.array([self.viewport_width, 0, 0])
+        self.vertical = np.array([0, self.viewport_height, 0])
+        self.lowerlc = self.origin - self.horizontal/2 - self.vertical/2 - np.array([0,0,self.focal_length])
 
-max_depth = 3
+
+cam = Camera(0, 300/200)
+screen = (-cam.viewport_width, cam.viewport_height, cam.viewport_width, -cam.viewport_height)
+
+
+width = 300
+height = 200
+
+max_depth = 1
 
 camera = np.array([0, 0, 1])
 ratio = float(width) / height
-screen = (-1, 1 / ratio, 1, -1 / ratio)  # left, top, right, bottom
+# screen = (-1, 1 / ratio, 1, -1 / ratio)  # left, top, right, bottom
 
 
 light = Light(np.array([5, 5, 5]), np.array([1, 1, 1]),
@@ -113,21 +131,27 @@ image = np.zeros((height, width, 3))
 # plt.show()
 start = time.time()
 
-for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
-    for j, x in enumerate(np.linspace(screen[0], screen[2], width)):
+# for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
+#     for j, x in enumerate(np.linspace(screen[0], screen[2], width)):
+for i in range(height):
+    for j in range(width):
+        y = i/(height-1)
+        x = j/(width-1)
         # screen is on origin
         pixel = np.array([x, y, 0])
-        origin = camera
-        direction = normalize(pixel - origin)
+        # origin = camera
+        origin = cam.origin
+        # direction = normalize(pixel - origin)
+        direction = normalize(cam.lowerlc + x * cam.horizontal + y * cam.vertical - cam.origin)
 
         color = np.zeros((3))
         reflection = 1
 
         for k in range(max_depth):
             # check for intersections
-            # nearest_object, min_distance = tree.traverse(origin, direction)
-            nearest_object, min_distance = nearest_intersected_object(
-                objects, origin, direction)
+            nearest_object, min_distance = tree.traverse(origin, direction)
+            # nearest_object, min_distance = nearest_intersected_object(
+            #     objects, origin, direction)
 
             if nearest_object is None:
                 break
@@ -139,8 +163,10 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
             intersection_to_light = normalize(
                 light.position - shifted_point)
 
-            _, min_distance = nearest_intersected_object(
-                objects, shifted_point, intersection_to_light)
+            # _, min_distance = nearest_intersected_object(
+            #     objects, shifted_point, intersection_to_light)
+            _, min_distance = tree.traverse(
+                shifted_point, intersection_to_light)
             intersection_to_light_distance = np.linalg.norm(
                 light.position - intersection)
             is_shadowed = min_distance < intersection_to_light_distance
@@ -170,7 +196,7 @@ for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
             origin = shifted_point
             direction = reflected(direction, normal_to_surface)
 
-        image[i, j] = np.clip(color, 0, 1)
+        image[height-i-1, j] = np.clip(color, 0, 1)
 
     print("%d/%d" % (i + 1, height))
     # myobj.set_data(image)
