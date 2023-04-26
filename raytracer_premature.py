@@ -102,28 +102,70 @@ from bvh import *
 #         center2 = box2.center
 #         dist = sqrt((center1[0] - center2[0])**2 + (center1[1] -
 #                     center2[1])**2 + (center1[2] - center2[2])**2)
+class BVHTree:
+    def __init__(self, objects):
+        self.root = None
+        self.boxes = [BoundingBox(obj) for obj in objects]  #list of bounding boxes for all the objects in the scene
+
+    def __str__(self):
+        lst = []
+        for box in self.boxes:
+            lst.append(str(box))  #list of strings of all the bounding boxes in the scene for checking purposes
+        return str(lst)
+
+    #Took this approach from the research paper (Agglomerative clustering for bounding volume hierarchies)
+    def buildBVH(self):
+        while len(self.boxes) > 1:
+            best = inf      #best is the distance between the two closest boxes
+            left, right = None, None       #left and right are the indices of the two closest boxes
+            for i in range(len(self.boxes)):      #iterate over all the boxes
+                for j in range(i+1, len(self.boxes)):     #iterate over all the boxes after the ith box 
+                    dist = self.compute_dist(self.boxes[i], self.boxes[j])     #compute the distance between the two boxes
+                    if dist < best:    #if the distance is less than the best distance, then update the best distance and the indices of the two closest boxes
+                        #Yahan pe tree banta jaa raha hai, har node k baad jo closest box hai usko left child banata jaa raha hai aur jo dusra closest box hai usko right child banata jaa raha hai
+                        best = dist  
+                        left = i      
+                        right = j
+
+            #YEH WALA PART SAARE BOXES KO COMBINE KARKE NAYA BOX BANATA HAI JISMEIN DONO CHILDREN HAI IS TARAH ITTERATIVELY KRTA HAI TILL THERE IS ONLY ONE BOX LEFT JO K SCENE KA BOUNDING BOX HOGA
+            new_box = BoundingBox([self.boxes[left], self.boxes[right]]) #create a new box with the two closest boxes as its children and combine 
+            del self.boxes[right]  #delete the right box from the list of boxes
+            del self.boxes[left]    #delete the left box from the list of boxes
+            self.boxes.append(new_box)  #append the new box to the list of boxes 
+            #IS TARAH TREE CHOTA HUTA CHALA JAEGA FROM THE BOTTOM TILL THERE IS ONLY ONE BOX LEFT
+
+    def buildTree(self):
+        self.buildBVH()
+        self.root = self.boxes[0]  #the root of the tree will be the only box left in the list of boxes
+        # return self.root
+
+    def compute_dist(self, box1, box2):
+        center1 = box1.center            #the center of the first box 
+        center2 = box2.center         #the center of the second box
+        dist = sqrt((center1[0] - center2[0])**2 + (center1[1] -
+                    center2[1])**2 + (center1[2] - center2[2])**2) #compute the distance between the two centers by distance formula
 
 #         return dist
 
-#     def traverse(self, rayOrigin, rayDirection):
-#         stack = [self.root]
-#         minDist = inf
-#         nearest = None
-#         while len(stack) > 0:
-#             node = stack.pop()
-#             # print(node)
-#             if node.box_intersect(rayOrigin, rayDirection):
-#                 if node.left is None and node.right is None:
-#                     dist = node.sphere.intersect(rayOrigin, rayDirection)
-#                     # print(dist)
-#                     if dist is not None:
-#                         if dist < minDist:
-#                             minDist = dist
-#                             nearest = (node.sphere, dist)
+    def traverse(self, rayOrigin, rayDirection):
+        stack = [self.root]    #stack to traverse the tree initially the root is pushed in the stack
+        minDist = inf   #minimum distance of the intersection point from the ray origin
+        nearest = None  #nearest object to the ray origin
+        while len(stack) > 0:
+            node = stack.pop()  #pop the top element from the stack
+            # print(node)
+            if node.box_intersect(rayOrigin, rayDirection):  #check if the ray intersects the box
+                if node.left is None and node.right is None:  #if the node is a leaf node 
+                    dist = node.sphere.intersect(rayOrigin, rayDirection)    #check if the ray intersects the sphere
+                    # print(dist)
+                    if dist is not None:    #if the ray intersects the sphere
+                        if dist < minDist:  #if the distance of the intersection point from the ray origin is less than the minimum distance
+                            minDist = dist  #update the minimum distance
+                            nearest = (node.sphere, dist)  #update the nearest object to the ray origin
 
-#                 else:
-#                     stack.append(node.left)
-#                     stack.append(node.right)
+                else:
+                    stack.append(node.left)  #push the left child of the node in the stack
+                    stack.append(node.right)    #push the right child of the node in the stack
 
 #         if nearest is None:
 #             return None, None
@@ -156,7 +198,7 @@ from bvh import *
 
 
 
-
+###############NECHE POORI LINEAR ALGEBRA HAI JISSE HAMNE SPHERE INTERSECTION KA CODE LIKHA HAI#####################
 class Sphere(object):
     def __init__(self, center, radius, ambient, diffuse, specular, shininess, reflection):
         self.center = center
@@ -166,17 +208,17 @@ class Sphere(object):
         self.specular = specular
         self.shininess = shininess
         self.reflection = reflection
-        self.bounds = np.array([center - radius, center + radius])
+        self.bounds = np.array([center - radius, center + radius])  #bounding box of the sphere uper and lower bounds
 
     def intersect(self,  ray_origin, ray_direction):
-        b = 2 * np.dot(ray_direction, ray_origin - self.center)
-        c = np.linalg.norm(ray_origin - self.center) ** 2 - self.radius ** 2
-        delta = b ** 2 - 4 * c
-        if delta > 0:
-            t1 = (-b + np.sqrt(delta)) / 2
-            t2 = (-b - np.sqrt(delta)) / 2
+        b = 2 * np.dot(ray_direction, ray_origin - self.center)   #doubling the ray direction and then dotting it with the ray origin minus the center of the sphere
+        c = np.linalg.norm(ray_origin - self.center) ** 2 - self.radius ** 2  #calculating norm and then squaring it and then subtracting the radius squared from it
+        delta = b ** 2 - 4 * c   #calculating the discriminant
+        if delta > 0:     #if the discriminant is greater than 0	
+            t1 = (-b + np.sqrt(delta)) / 2  #calculating the first intersection point
+            t2 = (-b - np.sqrt(delta)) / 2  #calculating the second intersection point
             if t1 > 0 and t2 > 0:
-                return min(t1, t2)
+                return min(t1, t2)  #return the minimum of the two intersection points
         return None
 
 
@@ -189,11 +231,11 @@ class Light(object):
 
 
 def normalize(vector):
-    return vector / np.linalg.norm(vector)
+    return vector / np.linalg.norm(vector)     #normalizing the vector
 
 
-def reflected(vector, axis):
-    return vector - 2 * np.dot(vector, axis) * axis
+def reflected(vector, axis):   
+    return vector - 2 * np.dot(vector, axis) * axis     #calculating the reflected vector
 
 
 def sphere_intersect(center, radius, ray_origin, ray_direction):
@@ -207,8 +249,8 @@ def sphere_intersect(center, radius, ray_origin, ray_direction):
             return min(t1, t2)
     return None
 
-
-def nearest_intersected_object(objects, ray_origin, ray_direction):
+#########YEH KIA KR RAHA HAI?##############
+def nearest_intersected_object(objects, ray_origin, ray_direction): #function to find the nearest object that the ray intersects
     distances = [sphere_intersect(
         obj.center, obj.radius, ray_origin, ray_direction) for obj in objects]
     # print(distances)
@@ -221,6 +263,7 @@ def nearest_intersected_object(objects, ray_origin, ray_direction):
     return nearest_object, min_distance
 
 
+#yeh GUI ka code hai
 width = 300
 height = 200
 
@@ -232,7 +275,7 @@ screen = (-1, 1 / ratio, 1, -1 / ratio)  # left, top, right, bottom
 
 
 light = Light(np.array([5, 5, 5]), np.array([1, 1, 1]),
-              np.array([1, 1, 1]), np.array([1, 1, 1]))
+              np.array([1, 1, 1]), np.array([1, 1, 1]))  #light source ka position, ambient, diffuse and specular color
 
 objects = [
     Sphere(np.array([-0.2, 0, -1]), 0.7, np.array([0.1, 0, 0]),
@@ -247,7 +290,7 @@ objects = [
            np.array([0, 0.6, 0]), np.array([1, 1, 1]), 100, 0.5),
     Sphere(np.array([0, -9000, 0]), 9000 - 0.7, np.array([0.1, 0.1, 0.1]),
            np.array([0.6, 0.6, 0.6]), np.array([1, 1, 1]), 100, 0.5),
-]
+]   #list of objects in the scene with their center, radius, ambient, diffuse, specular color, shininess and reflectivity
 
 tree = BVHTree(objects)
 print(tree)
@@ -264,6 +307,7 @@ image = np.zeros((height, width, 3))
 # plt.show()
 
 
+#The code below is for the ray tracing algorithm and the GUI part
 for i, y in enumerate(np.linspace(screen[1], screen[3], height)):
     for j, x in enumerate(np.linspace(screen[0], screen[2], width)):
         # screen is on origin
