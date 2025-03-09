@@ -1,4 +1,4 @@
-### Accelerated Ray Tracer using Bounding Volume Hierarchy
+# AAC-BVH Accelerated Ray Tracer
 
 A minimalistic Ray Tracer accelerated using [Bounding Volume Hierarchy](http://graphics.cs.cmu.edu/projects/aac/aac_build.pdf). The BVH Tree is constructed using Approximate Agglomerative Clustering, thus reducing the cost overhead of constructing the BVH Tree. This project demonstrates the reduction in time complexity in ray tracing with and without using AAC based BVH.
 
