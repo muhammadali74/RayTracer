@@ -1,2 +1,9 @@
-### Welcome to our cutting-edge coding project focused on ray tracing, where we harness the power of algorithms to simulate the behavior of light, crafting stunning and realistic images from virtual scenes. 
-By: Ali Naqvi, Hammad Sajid, Muhammad Khubaib, Muhammad Hussain
+### Accelerated Ray Tracer using Bounding Volume Hierarchy
+
+A minimalistic Ray Tracer accelerated using [Bounding Volume Hierarchy](). This project demonstrates the reduction in time complexity in ray tracing with and without using BVH.
+
+This project was done as part of the Data Structures - II course project Spring 2023.
+
+
+
+
